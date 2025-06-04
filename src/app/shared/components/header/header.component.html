@@ -1,0 +1,93 @@
+<link rel="stylesheet" href="header.component.css">
+<div class="flex flex-col-reverse md:flex-row md:items-center md:justify-between gap-6 p-4 bg-gray-900 text-white shadow-md rounded-lg">
+  <!-- Breadcrumb + Título + Imagen -->
+  <div class="flex flex-col md:flex-row md:items-center md:gap-4 capitalize">
+    <!-- Imagen logo -->
+    <img src="https://res.cloudinary.com/dkpuiyovk/image/upload/v1747407908/pngwing.com_45_ejyfpl.png"
+         alt="SmartCar Logo"
+         class="w-12 h-12 object-contain" />
+
+    <div class="flex flex-col">
+      <nav aria-label="breadcrumb">
+        <ol class="flex items-center text-sm text-gray-300 space-x-2">
+          <li>
+            <a href="/dashboard" class="hover:text-purple-400 transition flex items-center gap-1">
+              <i class="fas fa-home"></i> Dashboard
+            </a>
+            <span class="mx-2">/</span>
+          </li>
+          <li class="text-purple-400 font-semibold flex items-center gap-1">
+            <i class="fas fa-chart-line"></i> Home
+          </li>
+        </ol>
+      </nav>
+      <h6 class="text-base md:text-lg font-semibold text-white flex items-center gap-2 mt-1">
+        <i class="fas fa-car text-purple-400"></i>
+        Aula Inteligente
+      </h6>
+    </div>
+  </div>
+
+  <!-- Buscador + Usuario -->
+  <div class="flex items-center flex-wrap gap-4 relative">
+    <!-- Buscador -->
+    <div class="relative w-full md:w-64">
+      <input
+        type="text"
+        placeholder="Buscar..."
+        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+      />
+      <svg
+        class="absolute right-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+      </svg>
+    </div>
+
+    <!-- Usuario + Dropdown -->
+    <ng-container *ngIf="isAuthenticated; else loggedOut">
+      <div class="relative user-dropdown">
+        <button (click)="toggleDropdown()" class="flex items-center gap-2 text-white hover:text-purple-400 focus:outline-none">
+          <span class="text-sm font-medium">{{ userName }}</span>
+
+          <!-- Avatar -->
+          <img
+            [src]="fotoPerfil || 'https://res.cloudinary.com/dkpuiyovk/image/upload/v1744155434/pngwing.com_37_gxzu8b.png'"
+            alt="Avatar"
+            class="w-8 h-8 rounded-full border border-purple-500"
+          />
+
+          <i class="fas fa-chevron-down text-xs ml-1"></i>
+        </button>
+
+        <!-- Dropdown -->
+        <div
+          *ngIf="showDropdown"
+          class="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded shadow-lg z-50 animate-fade"
+        >
+          <a href="/perfil" class="flex items-center px-4 py-2 text-sm text-white hover:bg-purple-600 transition">
+            <i class="fas fa-user mr-2 text-purple-400"></i> Ver Perfil
+          </a>
+          <button (click)="logout()" class="w-full text-left px-4 py-2 text-sm text-white hover:bg-purple-600 transition">
+            <i class="fas fa-sign-out-alt mr-2 text-red-400"></i> Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Si no está loggeado -->
+    <ng-template #loggedOut>
+      <a href="/login">
+        <button
+          class="bg-transparent border border-purple-500 hover:bg-purple-600 hover:text-white text-purple-400 text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition"
+        >
+          <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+        </button>
+      </a>
+    </ng-template>
+  </div>
+</div>

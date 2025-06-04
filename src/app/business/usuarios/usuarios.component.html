@@ -1,0 +1,214 @@
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container bg-stone-100 mx-auto px-4 py-8">
+  <!-- Título -->
+  <h1 class="text-3xl font-bold text-gray-800 mb-4">Gestionar Usuarios</h1>
+
+  <!-- Controles superiores -->
+  <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+    <button
+      (click)="addUsuario()"
+      class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Añadir Usuario
+    </button>
+
+    <input
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="filterUsuarios()"
+      type="text"
+      placeholder="Buscar por username o email..."
+      class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+    />
+  </div>
+
+  <!-- Tabla -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead>
+      <tr class="bg-gray-800 text-white text-left">
+        <th class="p-3">Foto</th> <!-- Nueva columna -->
+        <th class="p-3">Username</th>
+        <th class="p-3">Nombre</th>
+        <th class="p-3">Apellido</th>
+        <th class="p-3">Email</th>
+        <th class="p-3">CI</th>
+        <th class="p-3">Celular</th>
+        <th class="p-3">Dirección</th>
+        <th class="p-3">Fecha Ingreso</th>
+        <th class="p-3">Activo</th>
+        <th class="p-3">Rol</th>
+        <th class="p-3 text-center">Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let usuario of paginatedUsuarios()" class="hover:bg-gray-50 border-b">
+        <td class="p-3">
+          <img
+            *ngIf="usuario.foto_perfil; else noFoto"
+            [src]="usuario.foto_perfil"
+            alt="Foto"
+            class="w-10 h-10 rounded-full object-cover border border-gray-300"
+          />
+          <ng-template #noFoto>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.657 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </ng-template>
+        </td>
+        <td class="p-3">{{ getValor(usuario.username) }}</td>
+        <td class="p-3">{{ getValor(usuario.first_name) }}</td>
+        <td class="p-3">{{ getValor(usuario.last_name) }}</td>
+        <td class="p-3">{{ getValor(usuario.email) }}</td>
+        <td class="p-3">{{ getValor(usuario.ci) }}</td>
+        <td class="p-3">{{ getValor(usuario.celular) }}</td>
+        <td class="p-3">{{ getValor(usuario.direccion) }}</td>
+        <td class="p-3">{{ getValor(usuario.fecha_ingreso) }}</td>
+        <td class="p-3">{{ usuario.activo ? 'Sí' : 'No' }}</td>
+        <td class="p-3">
+          <ng-container *ngIf="usuario.groups?.length; else noRole">
+    <span *ngFor="let roleId of usuario.groups" class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs mr-1">
+      {{ getNombreRolPorId(roleId) }}
+    </span>
+          </ng-container>
+          <ng-template #noRole>
+            <span class="text-gray-400 text-xs italic">No asignado</span>
+          </ng-template>
+        </td>
+
+        <td class="p-3 text-center space-x-4">
+          <button (click)="editUsuario(usuario)" class="bg-blue-600 text-white px-3 py-1 rounded" title="Editar">
+            ✏️
+          </button>
+          <button (click)="deleteUsuario(usuario.id)" class="bg-red-600 text-white px-3 py-1 rounded" title="Eliminar">
+            🗑️
+          </button>
+
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+
+  <!-- Paginación -->
+  <div class="mt-6 flex justify-end items-center gap-2">
+    <button (click)="prevPage()" [disabled]="currentPage === 1"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Anterior</button>
+    <span class="text-sm font-medium text-gray-700">Página {{ currentPage }} de {{ totalPages() }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages()"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Siguiente</button>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white text-black w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-xl shadow-xl p-8 border border-purple-600">
+      <h2 class="text-3xl font-bold mb-6 text-center text-purple-600 tracking-wide">
+        {{ isEditMode ? '✏️ Editar Usuario' : '➕ Añadir Usuario' }}
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Columna izquierda -->
+        <div class="space-y-4">
+          <div class="flex flex-col items-center gap-2">
+            <img *ngIf="previewImage; else noPreview"
+                 [src]="previewImage"
+                 class="w-24 h-24 rounded-full object-cover border-4 border-purple-400 shadow-md" />
+            <ng-template #noPreview>
+              <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center text-purple-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.657 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+            </ng-template>
+            <input type="file" (change)="onFileSelected($event)" accept="image/*"
+                   class="mt-2 w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-black focus:outline-none focus:ring-2 focus:ring-purple-500">
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1">👤 Nombre</label>
+            <input [(ngModel)]="selectedUsuario.first_name" class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black" />
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1">👥 Apellido</label>
+            <input [(ngModel)]="selectedUsuario.last_name" class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black" />
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1">🪪 CI</label>
+            <input [(ngModel)]="selectedUsuario.ci" class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black" />
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1">📱 Celular</label>
+            <input [(ngModel)]="selectedUsuario.celular" class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black" />
+          </div>
+        </div>
+
+        <!-- Columna derecha -->
+        <div class="space-y-4">
+          <div>
+            <label class="block font-bold mb-1">📍 Dirección</label>
+            <input [(ngModel)]="selectedUsuario.direccion" class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black" />
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1">🆔 Username</label>
+            <input [(ngModel)]="selectedUsuario.username" class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black" />
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1">✉️ Email</label>
+            <input [(ngModel)]="selectedUsuario.email" type="email" class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black" />
+          </div>
+
+          <div *ngIf="!isEditMode">
+            <label class="block font-bold mb-1">🔒 Contraseña</label>
+            <input [(ngModel)]="password" type="password" class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black" />
+          </div>
+
+          <div>
+            <label class="block font-bold mb-1">🎭 Rol</label>
+            <select [(ngModel)]="rolSeleccionado"
+                    class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black"
+                    [ngClass]="{'border-red-500': !rolSeleccionado}">
+              <option [ngValue]="null" disabled>Seleccione un rol...</option>
+              <option *ngFor="let grupo of gruposDisponibles" [value]="grupo.id">
+                {{ grupo.name }}
+              </option>
+
+            </select>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="mt-6 flex justify-between">
+        <button (click)="saveUsuario()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+          {{ isEditMode ? '💾 Actualizar' : '✅ Guardar' }}
+        </button>
+        <button (click)="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+          ❌ Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner overlay -->
+  <div *ngIf="isSaving" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-xl">
+    <div class="w-12 h-12 border-4 border-white border-t-pink-500 rounded-full animate-spin"></div>
+  </div>
+
+</div>

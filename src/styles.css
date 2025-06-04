@@ -1,0 +1,21 @@
+/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+a.router-link-active button,
+a.active button {
+  background-color: #3b82f6 !important; /* Color de fondo activo */
+  color: white !important; /* Color de texto activo */
+}
+::ng-deep ngx-spinner {
+  z-index: 2000 !important; /* Asegúrate de que esté encima de otros elementos */
+  position: fixed; /* Fija el spinner en el centro */
+}
+
+
+::ng-deep .spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}

@@ -1,0 +1,198 @@
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container bg-stone-100 mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6">Gestionar Alumnos</h1>
+
+  <!-- Controles superiores -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <!-- Filtro por curso -->
+    <select [(ngModel)]="cursoSeleccionado" (change)="filtrar()"
+            class="px-4 py-2 rounded-lg border border-gray-300 text-black">
+      <option value="todos">Todos los cursos</option>
+      <option *ngFor="let curso of cursos" [value]="curso.id">
+        {{ curso.nombre }} - {{ curso.nivel_nombre }}
+      </option>
+    </select>
+
+    <!-- Buscar por nombre o apellido -->
+    <input
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="filtrar()"
+      type="text"
+      placeholder="Buscar por nombre o apellido..."
+      class="px-4 py-2 rounded-lg border border-gray-300 text-black w-full md:w-72"
+    />
+
+    <!-- Botón importar Excel -->
+    <div class="flex gap-2 items-center">
+
+      <!-- Botón para abrir el modal -->
+      <button
+        (click)="abrirModalImportar()"
+        class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md">
+        📥 Importar desde Excel
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Tabla de alumnos -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead>
+      <tr class="bg-gray-800 text-white">
+        <th class="p-3">Foto</th>
+        <th class="p-3">Nombre</th>
+        <th class="p-3">Apellido</th>
+        <th class="p-3">CI</th>
+        <th class="p-3">Celular</th>
+        <th class="p-3">Tutor</th>
+        <th class="p-3">Celular Tutor</th>
+        <th class="p-3">Curso</th>
+        <th class="p-3 text-center">Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let alumno of alumnosFiltrados" class="hover:bg-gray-50 border-b">
+        <td class="p-3">
+          <img [src]="alumno.foto_perfil || 'https://via.placeholder.com/80?text=Alumno'"
+               class="w-12 h-12 rounded-full object-cover border border-gray-300" />
+        </td>
+        <td class="p-3">{{ alumno.first_name }}</td>
+        <td class="p-3">{{ alumno.last_name }}</td>
+        <td class="p-3">{{ alumno.ci }}</td>
+        <td class="p-3">{{ alumno.celular }}</td>
+        <td class="p-3">{{ alumno.tutor_nombre }}</td>
+        <td class="p-3">{{ alumno.tutor_celular }}</td>
+        <td class="p-3">{{ alumno.curso_nombre || '---' }}</td>
+        <td class="p-3 text-center space-x-4">
+          <button (click)="editarAlumno(alumno)" class="bg-blue-600 text-white px-3 py-1 rounded" title="Editar">
+            ✏️
+          </button>
+          <button (click)="eliminarAlumno(alumno.id)" class="bg-red-600 text-white px-3 py-1 rounded" title="Eliminar">
+            🗑️
+          </button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Errores -->
+  <div *ngIf="errores.length > 0" class="mt-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+    <h2 class="font-bold mb-2">Errores en la importación:</h2>
+    <ul class="list-disc pl-6">
+      <li *ngFor="let error of errores">
+        Fila {{ error.fila }}: {{ error.errores | json }}
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- Modal para editar alumno -->
+<div *ngIf="showModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white text-black w-full max-w-3xl rounded-xl shadow-xl p-8 border border-purple-600">
+    <h2 class="text-2xl font-bold text-center text-purple-700 mb-6">✏️ Editar Alumno</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block font-bold mb-1">👤 Nombre</label>
+        <input [(ngModel)]="selectedAlumno.first_name" class="w-full px-3 py-2 border rounded bg-gray-100 text-black" />
+      </div>
+      <div>
+        <label class="block font-bold mb-1">👥 Apellido</label>
+        <input [(ngModel)]="selectedAlumno.last_name" class="w-full px-3 py-2 border rounded bg-gray-100 text-black" />
+      </div>
+      <div>
+        <label class="block font-bold mb-1">🪪 CI</label>
+        <input [(ngModel)]="selectedAlumno.ci" class="w-full px-3 py-2 border rounded bg-gray-100 text-black" />
+      </div>
+      <div>
+        <label class="block font-bold mb-1">📱 Celular</label>
+        <input [(ngModel)]="selectedAlumno.celular" class="w-full px-3 py-2 border rounded bg-gray-100 text-black" />
+      </div>
+      <div>
+        <label class="block font-bold mb-1">👨‍👧 Tutor</label>
+        <input [(ngModel)]="selectedAlumno.tutor_nombre" class="w-full px-3 py-2 border rounded bg-gray-100 text-black" />
+      </div>
+      <div>
+        <label class="block font-bold mb-1">📞 Celular del Tutor</label>
+        <input [(ngModel)]="selectedAlumno.tutor_celular" class="w-full px-3 py-2 border rounded bg-gray-100 text-black" />
+      </div>
+
+      <!-- Curso -->
+      <div>
+        <label class="block font-bold mb-1">🏫 Curso</label>
+        <select [(ngModel)]="selectedAlumno.curso" class="w-full px-3 py-2 border rounded bg-gray-100 text-black">
+          <option [ngValue]="null" disabled>Seleccione un curso</option>
+          <option *ngFor="let curso of cursos" [ngValue]="curso.id">
+            {{ curso.nombre }} - {{ curso.nivel_nombre }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Foto de perfil -->
+    <div class="mt-6">
+      <label class="block font-bold mb-1">🖼️ Foto de perfil</label>
+      <input type="file" (change)="onFotoSeleccionada($event)" accept="image/*" class="mb-2" />
+      <img
+        [src]="selectedAlumno.foto_perfil || 'https://via.placeholder.com/80?text=Alumno'"
+        class="w-24 h-24 rounded-full object-cover border border-gray-400"
+      />
+    </div>
+
+    <!-- Botones -->
+    <div class="mt-6 flex justify-between">
+      <button (click)="guardarAlumno()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+        💾 Guardar cambios
+      </button>
+      <button (click)="cerrarModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+        ❌ Cancelar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Importación de Excel -->
+<div *ngIf="showImportModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white text-black w-full max-w-2xl rounded-xl shadow-xl p-8 border border-purple-600">
+    <h2 class="text-2xl font-bold text-center text-purple-700 mb-6">📥 Importar Alumnos desde Excel</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Seleccionar curso -->
+      <div class="col-span-2">
+        <label class="block font-bold mb-1">🏫 Seleccionar curso</label>
+        <select [(ngModel)]="cursoSeleccionadoParaImportar" class="w-full px-3 py-2 border rounded bg-gray-100 text-black">
+          <option [ngValue]="null" disabled>Seleccione un curso</option>
+          <option *ngFor="let curso of cursos" [ngValue]="curso.id">
+            {{ curso.nombre }} - {{ curso.nivel_nombre }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Seleccionar archivo -->
+      <div class="col-span-2">
+        <label class="block font-bold mb-1">📄 Seleccionar archivo Excel</label>
+        <input type="file" (change)="seleccionarArchivo($event)" accept=".xlsx"
+               class="w-full px-3 py-2 border rounded bg-gray-100 text-black" />
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="mt-6 flex justify-between">
+      <button (click)="importarAlumnos()"
+              class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+        📤 Importar
+      </button>
+      <button (click)="cerrarModalImportar()"
+              class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+        ❌ Cancelar
+      </button>
+    </div>
+  </div>
+</div>

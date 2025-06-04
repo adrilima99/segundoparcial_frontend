@@ -1,0 +1,81 @@
+<!-- Fondo completo -->
+<div class="min-h-screen bg-gradient-to-br from-gray-100 via-white to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-purple-950 p-6 text-gray-900 dark:text-white">
+  <div class="container mx-auto">
+    <h2 class="text-3xl font-bold mb-6 flex items-center gap-2">
+      <img src="https://img.icons8.com/color/48/000000/sales-performance.png" class="w-8 h-8" />
+      Productos Más Vendidos
+    </h2>
+
+    <!-- Filtros -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <!-- Fecha inicio -->
+      <div>
+        <label class="block font-semibold mb-1">📅 Fecha Inicio</label>
+        <input type="date" [(ngModel)]="fechaInicio"
+               class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white" />
+      </div>
+
+      <!-- Fecha fin -->
+      <div>
+        <label class="block font-semibold mb-1">📅 Fecha Fin</label>
+        <input type="date" [(ngModel)]="fechaFin"
+               class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white" />
+      </div>
+
+      <!-- Categoría -->
+      <div>
+        <label class="block font-semibold mb-1">📁 Categoría</label>
+        <select [(ngModel)]="categoriaId"
+                (change)="onCategoriaChange()"
+                class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white">
+          <option [ngValue]="null">Todas</option>
+          <option *ngFor="let cat of categorias" [ngValue]="cat.id">
+            {{ cat.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Subcategoría -->
+      <div>
+        <label class="block font-semibold mb-1">📂 Subcategoría</label>
+        <select [(ngModel)]="subcategoriaId"
+                [disabled]="!categoriaId || subcategorias.length === 0"
+                class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white">
+          <option [ngValue]="null">Todas</option>
+          <option *ngFor="let sub of subcategorias" [ngValue]="sub.id">
+            {{ sub.nombre }}
+          </option>
+        </select>
+      </div>
+
+
+      <!-- Marca -->
+      <div>
+        <label class="block font-semibold mb-1">🏷️ Marca</label>
+        <select [(ngModel)]="marcaId"
+                class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white">
+          <option [ngValue]="null">Todas</option>
+          <option *ngFor="let marca of marcas" [ngValue]="marca.id">
+            {{ marca.nombre }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Formato -->
+      <div>
+        <label class="block font-semibold mb-1">📂 Formato</label>
+        <select [(ngModel)]="formato"
+                class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white">
+          <option value="pdf">📄 PDF</option>
+          <option value="excel">📊 Excel</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Botón generar -->
+    <button (click)="generarReporte()" [disabled]="isLoading"
+            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg shadow font-bold transition">
+      ⚙️ {{ isLoading ? 'Generando...' : 'Generar Reporte' }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,152 @@
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container bg-stone-100 mx-auto px-4 py-8">
+  <!-- Título -->
+  <h1 class="text-3xl font-bold -800 mb-4">Gestionar Especialidades</h1>
+
+  <!-- Controles superiores -->
+  <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+    <button
+      (click)="addEspecialidad()"
+      class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition">
+      ➕ Añadir Especialidad
+    </button>
+
+    <input
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="filterEspecialidades()"
+      type="text"
+      placeholder="🔎 Buscar por nombre o nivel..."
+      class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+    />
+  </div>
+
+  <!-- Tabla -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead>
+      <tr class="bg-purple-800 text-white text-left">
+        <th class="p-3">📘 Nombre</th>
+        <th class="p-3">🏫 Nivel Educativo</th>
+        <th class="p-3">🏠 Colegio</th>
+        <th class="p-3 text-center">⚙️ Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let esp of paginatedEspecialidades()" class="hover:bg-purple-50 border-b">
+        <td class="p-3">📗 {{ esp.nombre }}</td>
+        <td class="p-3">🎓 {{ esp.nivel_nombre }}</td>
+        <td class="p-3">🏫 {{ esp.colegio_nombre }}</td>
+        <td class="p-3 text-center space-x-2">
+          <button (click)="editEspecialidad(esp)" class="bg-blue-600 text-white px-3 py-1 rounded" title="Editar">
+            ✏️ Editar
+          </button>
+          <button (click)="deleteEspecialidad(esp.id)" class="bg-red-600 text-white px-3 py-1 rounded" title="Eliminar">
+            🗑️ Eliminar
+          </button>
+          <button (click)="openAsignarModal(esp.id)" class="bg-indigo-600 text-white px-3 py-1 rounded" title="Asignar Profesores">
+            👨‍🏫 Asignar
+          </button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="mt-6 flex justify-end items-center gap-2">
+    <button (click)="prevPage()" [disabled]="currentPage === 1"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">⬅️ Anterior</button>
+    <span class="text-sm font-medium text-gray-700">📄 Página {{ currentPage }} de {{ totalPages() }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages()"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Siguiente ➡️</button>
+  </div>
+
+  <!-- Modal Registrar o Editar -->
+  <div *ngIf="showModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white text-black w-full max-w-2xl rounded-xl shadow-xl p-8 border border-purple-600">
+      <h2 class="text-3xl font-bold mb-6 text-center text-purple-600">
+        {{ isEditMode ? '✏️ Editar Especialidad' : '➕ Añadir Especialidad' }}
+      </h2>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block font-bold mb-1">📘 Nombre de la especialidad</label>
+          <select [(ngModel)]="selected.nombre"
+                  class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black">
+            <option [ngValue]="''" disabled>Seleccione una especialidad...</option>
+            <option *ngFor="let esp of especialidadesDisponibles" [value]="esp">{{ esp }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1">🏫 Nivel educativo</label>
+          <select [(ngModel)]="selected.nivel"
+                  class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black">
+            <option [ngValue]="''" disabled>Seleccione un nivel...</option>
+            <option *ngFor="let n of niveles" [ngValue]="n.id">
+              {{ n.nombre_display }} - {{ n.colegio_nombre }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-between">
+        <button (click)="saveEspecialidad()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+          {{ isEditMode ? '💾 Actualizar' : '✅ Guardar' }}
+        </button>
+        <button (click)="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+          ❌ Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Asignar Profesores -->
+  <div *ngIf="showAsignarModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white text-black w-full max-w-5xl rounded-xl shadow-xl p-8 border border-indigo-600 max-h-[90vh] overflow-y-auto">
+      <h2 class="text-2xl font-bold text-center text-indigo-600 mb-6">👨‍🏫 Asignar Especialidad a Profesores</h2>
+
+      <div class="grid grid-cols-2 gap-6">
+        <!-- Profesores Disponibles -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-700 mb-2">📋 Profesores Disponibles</h3>
+          <div class="space-y-2 max-h-80 overflow-y-auto bg-gray-50 p-3 rounded-lg">
+            <div *ngFor="let profesor of profesoresDisponibles" class="flex items-center gap-2">
+              <input type="checkbox" [(ngModel)]="profesor.checked" class="form-checkbox h-4 w-4 text-indigo-600" />
+              <span>Nombre : {{ profesor.nombre }} - Ci: ({{ profesor.ci }}) - Correo: {{ profesor.email }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profesores Asignados -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-700 mb-2">✅ Profesores Asignados</h3>
+          <div class="space-y-2 max-h-80 overflow-y-auto bg-green-50 p-3 rounded-lg">
+            <div *ngFor="let profesor of profesoresAsignados" class="flex items-center gap-2">
+              <span class="text-green-700">✔️ {{ profesor.nombre }} ({{ profesor.ci }}) - {{ profesor.email }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-between">
+        <button (click)="asignarEspecialidades()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg shadow">
+          💾 Guardar asignación
+        </button>
+        <button (click)="closeAsignarModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+          ❌ Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner overlay -->
+  <div *ngIf="isSaving" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 rounded-xl">
+    <div class="w-12 h-12 border-4 border-white border-t-pink-500 rounded-full animate-spin"></div>
+  </div>
+</div>

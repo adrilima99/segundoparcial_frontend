@@ -1,0 +1,97 @@
+<!-- Fondo -->
+<div class="min-h-screen bg-gradient-to-br from-gray-100 via-white to-purple-100 dark:from-gray-900 dark:via-gray-800 dark:to-purple-950 p-6 text-gray-900 dark:text-white">
+  <div class="container mx-auto">
+    <h2 class="text-3xl font-bold mb-6 flex items-center gap-2">
+      <img src="https://img.icons8.com/external-flatart-icons-outline-flatarticons/64/external-warehouse-logistics-flatart-icons-outline-flatarticons.png" class="w-8 h-8" />
+      Reporte de Inventario
+    </h2>
+
+    <!-- Filtros -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <!-- Fecha inicio -->
+      <div>
+        <label class="block font-semibold mb-1">📅 Fecha Inicio</label>
+        <input type="date" [(ngModel)]="fechaInicio"
+               class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white" />
+      </div>
+
+      <!-- Fecha fin -->
+      <div>
+        <label class="block font-semibold mb-1">📅 Fecha Fin</label>
+        <input type="date" [(ngModel)]="fechaFin"
+               class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white" />
+      </div>
+
+      <!-- Categoría -->
+      <div>
+        <label class="block font-semibold mb-1">📁 Categoría</label>
+        <select [(ngModel)]="categoriaId"
+                (change)="onCategoriaChange()"
+                class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white">
+          <option [ngValue]="null">Todas</option>
+          <option *ngFor="let cat of categorias" [ngValue]="cat.id">{{ cat.nombre }}</option>
+        </select>
+      </div>
+
+      <!-- Subcategoría -->
+      <div>
+        <label class="block font-semibold mb-1">📂 Subcategoría</label>
+        <select [(ngModel)]="subcategoriaId"
+                (change)="onSubcategoriaChange()"
+                [disabled]="!categoriaId || subcategorias.length === 0"
+                class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white">
+          <option [ngValue]="null">Todas</option>
+          <option *ngFor="let sub of subcategorias" [ngValue]="sub.id">{{ sub.nombre }}</option>
+        </select>
+      </div>
+
+
+      <!-- Producto con búsqueda -->
+      <div class="relative">
+        <label class="block font-semibold mb-1">📦 Producto</label>
+        <input type="text" [(ngModel)]="busquedaProducto"
+               (input)="onBuscarProductoChange()"
+               placeholder="Buscar producto..."
+               class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white" />
+
+        <!-- Lista desplegable -->
+        <ul *ngIf="mostrarDropdown && productosFiltrados.length > 0"
+            class="absolute z-10 w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg mt-1 max-h-48 overflow-auto border border-gray-300 dark:border-gray-700">
+          <li *ngFor="let prod of productosFiltrados"
+              (click)="seleccionarProducto(prod)"
+              class="px-4 py-2 hover:bg-purple-100 dark:hover:bg-purple-800 cursor-pointer">
+            {{ prod.nombre }}
+          </li>
+        </ul>
+      </div>
+
+
+      <!-- Tipo movimiento -->
+      <div>
+        <label class="block font-semibold mb-1">🔄 Tipo Movimiento</label>
+        <select [(ngModel)]="tipo"
+                class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white">
+          <option [ngValue]="null">Todos</option>
+          <option value="entrada">Entrada</option>
+          <option value="salida">Salida</option>
+        </select>
+      </div>
+
+      <!-- Formato -->
+      <div>
+        <label class="block font-semibold mb-1">📂 Formato</label>
+        <select [(ngModel)]="formato"
+                class="w-full px-4 py-2 rounded-lg bg-white text-black dark:bg-gray-700 dark:text-white">
+          <option value="pdf">📄 PDF</option>
+          <option value="excel">📊 Excel</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Botón generar -->
+    <button (click)="generarReporte()" [disabled]="isLoading"
+            class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg shadow font-bold transition">
+      📥 {{ isLoading ? 'Generando...' : 'Generar Reporte' }}
+    </button>
+  </div>
+</div>

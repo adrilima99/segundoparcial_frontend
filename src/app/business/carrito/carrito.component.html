@@ -1,0 +1,104 @@
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-4">Gestionar Carritos</h1>
+  <!-- Filtros -->
+  <div class="flex flex-wrap gap-4 items-center mb-6">
+    <input
+      type="text"
+      placeholder="Buscar por usuario..."
+      [(ngModel)]="filtroUsuario"
+      (ngModelChange)="filtrarCarritos()"
+      class="flex-1 min-w-[180px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+    />
+
+    <input
+      type="date"
+      [(ngModel)]="filtroFechaInicio"
+      (ngModelChange)="filtrarCarritos()"
+      class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+    />
+
+    <input
+      type="date"
+      [(ngModel)]="filtroFechaFin"
+      (ngModelChange)="filtrarCarritos()"
+      class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+    />
+  </div>
+
+  <!-- Tabla de Carritos -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead class="bg-gray-800 text-white">
+      <tr>
+        <th class="p-3">Usuario</th>
+        <th class="p-3">Estado</th>
+        <th class="p-3">Total Estimado</th>
+        <th class="p-3">Fecha</th>
+        <th class="p-3 text-center">Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let carrito of carritosFiltrados" class="hover:bg-gray-50 border-b">
+        <td class="p-3">{{ carrito.usuario_nombre }}</td>
+        <td class="p-3">{{ carrito.estado }}</td>
+        <td class="p-3">Bs {{ carrito.total_estimado }}</td>
+        <td class="p-3">{{ carrito.fecha_actualizacion | date: 'short' }}</td>
+        <td class="p-3 text-center flex justify-center gap-4">
+          <!-- Ver productos solo si el carrito está activo -->
+          <button *ngIf="carrito.estado === 'activo'"
+                  (click)="verProductos(carrito)"
+                  class="text-blue-500 hover:text-blue-700 flex items-center gap-1">
+            🛒 <span>Ver Productos</span>
+          </button>
+
+          <!-- Botón eliminar -->
+          <button (click)="eliminarCarrito(carrito.id)"
+                  class="text-red-500 hover:text-red-700 flex items-center gap-1">
+            🗑️ <span>Eliminar</span>
+          </button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Modal de productos del carrito -->
+  <div *ngIf="showProductosModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white text-black w-full max-w-2xl p-6 rounded-xl shadow-xl relative overflow-y-auto max-h-[90vh]">
+      <h2 class="text-2xl font-bold text-center text-purple-600 mb-4">🛍️ Productos del Carrito</h2>
+      <div *ngIf="productosDelCarrito.length > 0; else noItems">
+        <table class="w-full table-auto border text-sm">
+          <thead class="bg-purple-100 text-purple-700">
+          <tr>
+            <th class="p-2 text-left">Producto</th>
+            <th class="p-2 text-left">Precio</th>
+            <th class="p-2 text-left">Cantidad</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let item of productosDelCarrito" class="border-b hover:bg-gray-100">
+            <td class="p-2">{{ item.producto.nombre }}</td>
+            <td class="p-2">Bs {{ item.producto.precio_unitario }}</td>
+            <td class="p-2">{{ item.cantidad }}</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #noItems>
+        <p class="text-center text-gray-500">Este carrito no tiene productos.</p>
+      </ng-template>
+
+      <div class="mt-6 text-center">
+        <button (click)="cerrarModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+          ❌ Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

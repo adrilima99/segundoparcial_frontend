@@ -1,0 +1,135 @@
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-4">Gestionar Campañas</h1>
+
+  <!-- Filtros y botón -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div class="flex items-center gap-3">
+      <button (click)="showAddModal()"
+              class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="white" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Crear Campaña
+      </button>
+    </div>
+
+    <div class="w-full sm:w-auto">
+      <input [(ngModel)]="searchTerm" (ngModelChange)="filterCampanas()" type="text"
+             placeholder="Buscar campaña..."
+             class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500" />
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div *ngIf="filteredCampanas.length > 0; else noData">
+    <div class="overflow-x-auto">
+      <table class="min-w-full bg-white rounded-lg shadow text-sm">
+        <thead class="bg-gray-800 text-white">
+        <tr>
+          <th class="p-3">Nombre</th>
+          <th class="p-3">Descripción</th>
+          <th class="p-3">Inicio</th>
+          <th class="p-3">Fin</th>
+          <th class="p-3">Activo</th>
+          <th class="p-3 text-center">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let c of paginatedCampanas()" class="hover:bg-gray-50 border-b">
+          <td class="p-3 font-medium">{{ c.nombre }}</td>
+          <td class="p-3">{{ c.descripcion || '—' }}</td>
+          <td class="p-3">{{ c.fecha_inicio | date: 'short' }}</td>
+          <td class="p-3">{{ c.fecha_fin | date: 'short' }}</td>
+          <td class="p-3">
+  <span [class]="'px-2 py-1 rounded-full text-xs font-bold ' + (c.activa ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')">
+    {{ c.activa ? 'Sí' : 'No' }}
+  </span>
+          </td>
+          <td class="p-3 text-center flex gap-2 justify-center">
+            <button (click)="showEditModal(c)" class="text-blue-600 hover:text-blue-800 flex items-center gap-1" title="Editar">
+              ✏️ <span>Editar</span>
+            </button>
+            <button (click)="deleteCampana(c.id)" class="text-red-600 hover:text-red-800 flex items-center gap-1" title="Eliminar">
+              🗑️ <span>Eliminar</span>
+            </button>
+          </td>
+
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    <div class="mt-6 flex justify-end items-center gap-2">
+      <button (click)="prevPage()" [disabled]="currentPage === 1"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Anterior</button>
+      <span class="text-sm font-medium text-gray-700">Página {{ currentPage }} de {{ totalPages() }}</span>
+      <button (click)="nextPage()" [disabled]="currentPage === totalPages()"
+              class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Siguiente</button>
+    </div>
+  </div>
+
+  <!-- Sin datos -->
+  <ng-template #noData>
+    <div class="text-center text-gray-500 mt-10">
+      <p class="text-lg">😕 No hay campañas registradas.</p>
+    </div>
+  </ng-template>
+
+  <!-- Modal de crear/editar -->
+  <div *ngIf="showModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white w-full max-w-lg p-6 rounded-xl shadow-xl relative overflow-y-auto max-h-[90vh]">
+      <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">
+        {{ isEditMode ? '✏️ Editar Campaña' : '🎯 Crear Campaña' }}
+      </h2>
+
+      <div class="space-y-4">
+        <label class="block font-bold mb-1">🏷️ Nombre</label>
+        <input [(ngModel)]="selectedCampana.nombre" type="text"
+               class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black" />
+
+        <label class="block font-bold mb-1">📝 Descripción</label>
+        <textarea [(ngModel)]="selectedCampana.descripcion"
+                  class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black"
+                  rows="3"></textarea>
+
+        <label class="block font-bold mb-1">📅 Fecha de Inicio</label>
+        <input [(ngModel)]="selectedCampana.fecha_inicio" type="datetime-local"
+               class="w-full px-3 py-2 border rounded-lg bg-gray-100" />
+
+        <label class="block font-bold mb-1">📅 Fecha de Fin</label>
+        <input [(ngModel)]="selectedCampana.fecha_fin" type="datetime-local"
+               class="w-full px-3 py-2 border rounded-lg bg-gray-100" />
+
+        <label class="block font-bold mb-1">🟢 Activo</label>
+        <select [(ngModel)]="selectedCampana.activa"
+                class="w-full px-3 py-2 border rounded-lg bg-gray-100">
+          <option [ngValue]="true">Sí</option>
+          <option [ngValue]="false">No</option>
+        </select>
+
+      </div>
+
+      <!-- Botones -->
+      <div class="mt-6 flex justify-between">
+        <button (click)="saveCampana()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+          ✅ Guardar
+        </button>
+        <button (click)="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+          ❌ Cancelar
+        </button>
+      </div>
+
+      <!-- Spinner interno -->
+      <div *ngIf="isSaving" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-xl">
+        <div class="w-12 h-12 border-4 border-white border-t-purple-500 rounded-full animate-spin"></div>
+      </div>
+    </div>
+  </div>
+</div>

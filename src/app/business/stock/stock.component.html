@@ -1,0 +1,140 @@
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-4">Gestionar Stock</h1>
+
+
+  <!-- Filtro y botón alineados horizontalmente con selects compactos -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <!-- Izquierda: botón + filtros -->
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Botón -->
+      <button (click)="addStock()"
+              class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="white" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Registrar Stock Inicial
+      </button>
+
+      <!-- Filtro Categoría -->
+      <div class="inline-flex">
+        <select [(ngModel)]="categoriaSeleccionada" (change)="filterStocks()"
+                class="px-3 py-2 border rounded-lg bg-gray-100 text-black w-auto max-w-fit">
+          <option [ngValue]="null">Todas las categorías</option>
+          <option *ngFor="let cat of categorias" [ngValue]="cat.id">{{ cat.nombre }}</option>
+        </select>
+      </div>
+
+      <!-- Filtro Subcategoría -->
+      <div class="inline-flex">
+        <select [(ngModel)]="subcategoriaSeleccionada" (change)="filterStocks()"
+                class="px-3 py-2 border rounded-lg bg-gray-100 text-black w-auto max-w-fit">
+          <option [ngValue]="null">Todas las subcategorías</option>
+          <option *ngFor="let sub of getSubcategoriasFiltradas()" [ngValue]="sub.id">
+            {{ sub.nombre }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Derecha: buscador -->
+    <div class="w-full sm:w-auto">
+      <input [(ngModel)]="searchTerm" (ngModelChange)="filterStocks()" type="text"
+             placeholder="Buscar producto..."
+             class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500" />
+    </div>
+  </div>
+
+
+  <!-- Tabla -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead class="bg-gray-800 text-white">
+      <tr>
+        <th class="p-3">Producto</th>
+        <th class="p-3">Categoría</th>
+        <th class="p-3">Subcategoría</th>
+        <th class="p-3">Cantidad</th>
+        <th class="p-3">Punto Reorden</th>
+        <th class="p-3">Última Actualización</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let stock of paginatedStocks()" class="hover:bg-gray-50 border-b">
+        <td class="p-3">{{ getNombreProducto(stock.producto) }}</td>
+        <td class="p-3">{{ getNombreCategoriaDesdeProducto(stock.producto) }}</td>
+        <td class="p-3">{{ getNombreSubcategoriaDesdeProducto(stock.producto) }}</td>
+        <td class="p-3">{{ stock.cantidad_actual }}</td>
+        <td class="p-3">{{ stock.punto_reorden }}</td>
+        <td class="p-3">{{ stock.fecha_actualizacion | date:'short' }}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="mt-6 flex justify-end items-center gap-2">
+    <button (click)="prevPage()" [disabled]="currentPage === 1"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Anterior</button>
+    <span class="text-sm font-medium text-gray-700">Página {{ currentPage }} de {{ totalPages() }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages()"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Siguiente</button>
+  </div>
+
+  <!-- Modal de Registro -->
+  <div *ngIf="showModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white w-full max-w-lg p-6 rounded-xl shadow-xl relative overflow-y-auto max-h-[90vh]">
+      <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">➕ Registrar Stock</h2>
+
+      <div class="space-y-4">
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-lg mb-4 shadow-md">
+          <p class="font-semibold">⚠ Importante:</p>
+          <p>Solo puedes registrar productos que <strong>no tengan stock asignado</strong>.</p>
+          <p>Si el producto ya tiene stock, debes gestionarlo desde el módulo <strong>Movimientos de Inventario</strong>.</p>
+        </div>
+
+        <label class="block font-bold mb-1">📦 Producto</label>
+        <input [(ngModel)]="productoBuscado" (input)="mostrarListaProductos = true"
+               type="text" placeholder="Buscar producto..."
+               class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black" />
+
+        <!-- Lista de sugerencias -->
+        <ul *ngIf="productoBuscado && getProductosFiltradosPorNombre().length > 0 && mostrarListaProductos"
+            class="bg-white border border-gray-300 rounded-md shadow max-h-40 overflow-y-auto mt-1 text-black z-10 relative">
+          <li *ngFor="let p of getProductosFiltradosPorNombre()" (click)="selectProducto(p.id)"
+              class="px-3 py-2 hover:bg-purple-100 cursor-pointer">
+            {{ p.nombre }}
+          </li>
+        </ul>
+
+        <label class="block font-bold mb-1">📊 Cantidad Actual</label>
+        <input [(ngModel)]="selectedStock.cantidad_actual" type="number"
+               class="w-full px-3 py-2 border rounded-lg bg-gray-100" />
+
+        <label class="block font-bold mb-1">📉 Punto de Reorden</label>
+        <input [(ngModel)]="selectedStock.punto_reorden" type="number"
+               class="w-full px-3 py-2 border rounded-lg bg-gray-100" />
+      </div>
+
+      <!-- Botones -->
+      <div class="mt-6 flex justify-between">
+        <button (click)="saveStock()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+          ✅ Guardar
+        </button>
+        <button (click)="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+          ❌ Cancelar
+        </button>
+      </div>
+
+      <!-- Spinner de guardado -->
+      <div *ngIf="isSaving" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-xl">
+        <div class="w-12 h-12 border-4 border-white border-t-purple-500 rounded-full animate-spin"></div>
+      </div>
+    </div>
+  </div>
+</div>

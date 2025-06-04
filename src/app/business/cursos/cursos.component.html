@@ -1,0 +1,117 @@
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<div *ngIf="!isLoading" class="container bg-stone-100 mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-4">Gestionar Cursos</h1>
+
+  <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+    <button (click)="addCurso()" class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Añadir Curso
+    </button>
+
+    <input [(ngModel)]="searchTerm"
+           (ngModelChange)="filterCursos()"
+           type="text"
+           placeholder="Buscar por nombre o nivel..."
+           class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500" />
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead class="bg-gray-800 text-white">
+      <tr>
+        <th class="p-3 text-left">Nombre</th>
+        <th class="p-3 text-left">Nivel</th>
+        <th class="p-3 text-left">Aula</th>
+        <th class="p-3 text-left">Estado</th>
+        <th class="p-3 text-center">Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let c of paginatedCursos()" class="hover:bg-gray-50 border-b">
+        <td class="p-3">{{ c.nombre }}</td>
+        <td class="p-3">{{ c.nivel_nombre }}</td>
+        <td class="p-3">{{ c.aula }}</td>
+        <td class="p-3">
+          <span [ngClass]="c.activo ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'">
+            {{ c.activo ? 'Activo' : 'Inactivo' }}
+          </span>
+        </td>
+        <td class="p-3 text-center space-x-4">
+          <button (click)="editCurso(c)" class="bg-blue-600 text-white px-3 py-1 rounded">✏️</button>
+          <button (click)="deleteCurso(c.id)" class="bg-red-600 text-white px-3 py-1 rounded">🗑️</button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="mt-6 flex justify-end items-center gap-2" *ngIf="totalPages() > 1">
+    <button (click)="prevPage()" [disabled]="currentPage === 1"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Anterior</button>
+    <span class="text-sm font-medium text-gray-700">Página {{ currentPage }} de {{ totalPages() }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages()"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Siguiente</button>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white text-black w-full max-w-xl rounded-xl shadow-xl p-8 border border-purple-600">
+      <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">
+        {{ isEditMode ? '✏️ Editar Curso' : '➕ Añadir Curso' }}
+      </h2>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block font-bold mb-1">📘 Nombre del curso</label>
+          <select [(ngModel)]="selectedCurso.nombre"
+                  class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+            <option [ngValue]="''" disabled>Seleccione un curso...</option>
+            <option *ngFor="let curso of cursosDisponibles" [ngValue]="curso">
+              {{ curso }}
+            </option>
+          </select>
+        </div>
+
+
+        <div>
+          <label class="block font-bold mb-1">🏫 Aula</label>
+          <select [(ngModel)]="selectedCurso.aula"
+                  class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+            <option [ngValue]="''" disabled>Seleccione un aula...</option>
+            <option *ngFor="let aula of aulasDisponibles" [ngValue]="aula">
+              {{ aula }}
+            </option>
+          </select>
+        </div>
+
+
+        <div>
+          <label class="block font-bold mb-1">🎓 Nivel Educativo</label>
+          <select [(ngModel)]="selectedCurso.nivel" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+            <option [ngValue]="0" disabled>Seleccione un nivel...</option>
+            <option *ngFor="let nivel of niveles" [ngValue]="nivel.id">{{ nivel.nombre }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1">✅ Activo</label>
+          <input type="checkbox" [(ngModel)]="selectedCurso.activo" />
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-between">
+        <button (click)="saveCurso()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+          {{ isEditMode ? '💾 Actualizar' : '✅ Guardar' }}
+        </button>
+        <button (click)="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+          ❌ Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

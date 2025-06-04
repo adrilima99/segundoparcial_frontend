@@ -1,0 +1,82 @@
+<div class="p-6 bg-stone-100 rounded-xl shadow-md">
+  <h2 class="text-2xl font-bold text-gray-800 mb-6">📅 Reporte de Asistencia</h2>
+
+  <!-- 🗓️ Periodo y 🎓 Curso -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div>
+      <label for="periodo" class="block text-sm font-medium text-gray-700 mb-1">🗓️ Periodo</label>
+      <select id="periodo" [(ngModel)]="periodoSeleccionadoId" (change)="onCursoSeleccionado()"
+              class="w-full border rounded-lg px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm">
+        <option [ngValue]="null">-- Selecciona un periodo --</option>
+        <option *ngFor="let p of periodos" [value]="p.id">{{ p.nombre }} - {{ p.gestion }}</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="curso" class="block text-sm font-medium text-gray-700 mb-1">🎓 Curso</label>
+      <select id="curso" [(ngModel)]="cursoSeleccionadoId" (change)="onCursoSeleccionado()"
+              class="w-full border rounded-lg px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm">
+        <option [ngValue]="null">-- Selecciona un curso --</option>
+        <option *ngFor="let curso of cursos" [value]="curso.id">{{ curso.nombre }} - {{ curso.nivel_nombre }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- 📚 Materia -->
+  <div class="mb-6">
+    <label for="materia" class="block text-sm font-medium text-gray-700 mb-1">📚 Materia</label>
+    <select id="materia" [(ngModel)]="materiaSeleccionadaId" (change)="onMateriaSeleccionada()"
+            [disabled]="!materias.length"
+            class="w-full border rounded-lg px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm">
+      <option [ngValue]="null">-- Selecciona una materia --</option>
+      <option *ngFor="let materia of materias" [value]="materia.id">{{ materia.nombre }}</option>
+    </select>
+  </div>
+
+  <!-- 👨‍🎓 Alumno y 📆 Fechas -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div>
+      <label for="alumno" class="block text-sm font-medium text-gray-700 mb-1">👨‍🎓 Alumno (opcional)</label>
+      <select id="alumno" [(ngModel)]="alumnoSeleccionadoId"
+              [disabled]="!alumnos.length"
+              class="w-full border rounded-lg px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm">
+        <option [ngValue]="null">-- Todos los alumnos --</option>
+        <option *ngFor="let alumno of alumnos" [value]="alumno.id">
+          {{ alumno.first_name }} {{ alumno.last_name }}
+        </option>
+      </select>
+    </div>
+
+    <div class="flex gap-4">
+      <div class="w-full">
+        <label class="block text-sm font-medium text-gray-700 mb-1">📆 Fecha Inicio</label>
+        <input type="date" [(ngModel)]="fechaInicio"
+               class="w-full border rounded-lg px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm">
+      </div>
+      <div class="w-full">
+        <label class="block text-sm font-medium text-gray-700 mb-1">📆 Fecha Fin</label>
+        <input type="date" [(ngModel)]="fechaFin"
+               class="w-full border rounded-lg px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm">
+      </div>
+    </div>
+  </div>
+
+  <!-- 📝 Formato -->
+  <div class="mb-6">
+    <label class="block text-sm font-medium text-gray-700 mb-1">📝 Formato del Reporte</label>
+    <select [(ngModel)]="formatoSeleccionado"
+            class="w-full border rounded-lg px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm">
+      <option [ngValue]="null">-- Selecciona un formato --</option>
+      <option value="pdf">📄 PDF</option>
+      <option value="excel">📊 Excel</option>
+    </select>
+  </div>
+
+  <!-- 📥 Botón de descarga -->
+  <div class="mt-4 text-right">
+    <button (click)="filtrarReporte()"
+            class="bg-purple-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-purple-700 transition shadow-md">
+      📥 Generar Reporte
+    </button>
+  </div>
+</div>

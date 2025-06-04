@@ -1,0 +1,117 @@
+<!-- gestiones.component.html -->
+
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container bg-stone-100 mx-auto px-4 py-8">
+  <!-- Título -->
+  <h1 class="text-3xl font-bold text-gray-800 mb-4">Gestionar Gestiones Académicas</h1>
+
+  <!-- Controles superiores -->
+  <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+    <button
+      (click)="addGestion()"
+      class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Añadir Gestión
+    </button>
+
+    <input
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="filterGestiones()"
+      type="text"
+      placeholder="Buscar por año..."
+      class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+    />
+  </div>
+
+  <!-- Tabla -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead>
+      <tr class="bg-gray-800 text-white text-left">
+        <th class="p-3">Año</th>
+        <th class="p-3">Descripción</th>
+        <th class="p-3">Estado</th>
+        <th class="p-3 text-center">Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let gestion of paginatedGestiones()" class="hover:bg-gray-50 border-b">
+        <td class="p-3 font-semibold text-purple-700">{{ gestion.anio }}</td>
+        <td class="p-3">{{ gestion.descripcion || 'Sin descripción' }}</td>
+        <td class="p-3">
+            <span class="inline-block px-2 py-1 rounded text-xs font-medium"
+                  [ngClass]="gestion.activa ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'">
+              {{ gestion.activa ? 'Activa' : 'Inactiva' }}
+            </span>
+        </td>
+        <td class="p-3 text-center space-x-4">
+          <button (click)="editGestion(gestion)" class="bg-blue-600 text-white px-3 py-1 rounded" title="Editar">
+            ✏️
+          </button>
+          <button (click)="deleteGestion(gestion.id)" class="bg-red-600 text-white px-3 py-1 rounded" title="Eliminar">
+            🗑️
+          </button>
+
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="mt-6 flex justify-end items-center gap-2">
+    <button (click)="prevPage()" [disabled]="currentPage === 1"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Anterior</button>
+    <span class="text-sm font-medium text-gray-700">Página {{ currentPage }} de {{ totalPages() }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages()"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Siguiente</button>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white text-black w-full max-w-xl rounded-xl shadow-xl p-8 border border-purple-600">
+      <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">
+        {{ isEditMode ? '✏️ Editar Gestión' : '➕ Añadir Gestión' }}
+      </h2>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block font-bold mb-1">📆 Año</label>
+          <input [(ngModel)]="selectedGestion.anio"
+                 type="text"
+                 placeholder="Ej: 2025-2026"
+                 class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black" />
+        </div>
+
+        <div>
+          <label class="block font-bold mb-1">📝 Descripción</label>
+          <textarea [(ngModel)]="selectedGestion.descripcion"
+                    class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black"
+                    rows="3"></textarea>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <input [(ngModel)]="selectedGestion.activa" type="checkbox" id="activa" />
+          <label for="activa" class="text-sm font-medium text-gray-700">¿Está activa?</label>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-between">
+        <button (click)="saveGestion()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+          {{ isEditMode ? '💾 Actualizar' : '✅ Guardar' }}
+        </button>
+        <button (click)="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+          ❌ Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,127 @@
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-4">Gestionar Movimientos de Inventario</h1>
+
+  <!-- Filtro y botón alineados correctamente -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <!-- Botón -->
+    <div class="flex-shrink-0">
+      <button (click)="addMovimiento()"
+              class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="white" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Registrar Movimiento
+      </button>
+    </div>
+
+    <!-- Buscador alineado a la derecha -->
+    <div class="w-full sm:w-auto">
+      <input [(ngModel)]="searchTerm" (ngModelChange)="filterMovimientos()" type="text"
+             placeholder="Buscar producto..."
+             class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500" />
+    </div>
+  </div>
+
+
+  <!-- Tabla -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead class="bg-gray-800 text-white">
+      <tr>
+        <th class="p-3">Producto</th>
+        <th class="p-3">Tipo</th>
+        <th class="p-3">Cantidad</th>
+        <th class="p-3">Descripción</th>
+        <th class="p-3">Fecha</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let mov of paginatedMovimientos()" class="hover:bg-gray-50 border-b">
+        <td class="p-3">{{ getNombreProducto(mov.producto) }}</td>
+        <td class="p-3 capitalize">{{ mov.tipo }}</td>
+        <td class="p-3">{{ mov.cantidad }}</td>
+        <td class="p-3">{{ mov.descripcion || '—' }}</td>
+        <td class="p-3">{{ mov.fecha_movimiento | date:'short' }}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="mt-6 flex justify-end items-center gap-2">
+    <button (click)="prevPage()" [disabled]="currentPage === 1"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Anterior</button>
+    <span class="text-sm font-medium text-gray-700">Página {{ currentPage }} de {{ totalPages() }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages()"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Siguiente</button>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white w-full max-w-lg p-6 rounded-xl shadow-xl relative overflow-y-auto max-h-[90vh]">
+      <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">➕ Registrar Movimiento</h2>
+
+      <div class="space-y-4">
+        <label class="block font-bold mb-1">📦 Producto</label>
+        <input
+          [(ngModel)]="productoBuscado"
+          (input)="mostrarListaProductos = true"
+          type="text"
+          placeholder="Buscar producto..."
+          class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black"
+        />
+
+        <!-- Lista de resultados -->
+        <ul
+          *ngIf="productoBuscado && getProductosFiltradosPorNombre().length > 0 && mostrarListaProductos"
+          class="bg-white border border-gray-300 rounded-md shadow max-h-40 overflow-y-auto mt-1 text-black z-10 relative"
+        >
+          <li
+            *ngFor="let p of getProductosFiltradosPorNombre()"
+            (click)="selectProducto(p.id)"
+            class="px-3 py-2 hover:bg-purple-100 cursor-pointer"
+          >
+            {{ p.nombre }}
+          </li>
+        </ul>
+
+        <label class="block font-bold mb-1">📄 Tipo de Movimiento</label>
+        <select [(ngModel)]="nuevoMovimiento.tipo"
+                class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black">
+          <option value="entrada">Entrada</option>
+          <option value="salida">Salida</option>
+        </select>
+
+        <label class="block font-bold mb-1">📦 Cantidad</label>
+        <input [(ngModel)]="nuevoMovimiento.cantidad" type="number"
+               class="w-full px-3 py-2 border rounded-lg bg-gray-100" />
+
+        <label class="block font-bold mb-1">📝 Descripción</label>
+        <textarea [(ngModel)]="nuevoMovimiento.descripcion"
+                  class="w-full px-3 py-2 border rounded-lg bg-gray-100"
+                  rows="2" placeholder="Motivo del movimiento..."></textarea>
+      </div>
+
+      <!-- Botones -->
+      <div class="mt-6 flex justify-between">
+        <button (click)="saveMovimiento()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+          ✅ Registrar
+        </button>
+        <button (click)="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+          ❌ Cancelar
+        </button>
+      </div>
+
+      <!-- Spinner -->
+      <div *ngIf="isSaving" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-xl">
+        <div class="w-12 h-12 border-4 border-white border-t-purple-500 rounded-full animate-spin"></div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,211 @@
+<!-- Spinner de carga -->
+<div *ngIf="isLoading" class="flex justify-center items-center h-96">
+  <div class="spinner border-t-4 border-purple-600 border-solid rounded-full w-12 h-12 animate-spin"></div>
+</div>
+
+<!-- Contenido principal -->
+<div *ngIf="!isLoading" class="container mx-auto px-4 py-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">📅 Calendario de Horarios</h1>
+    <button (click)="abrirFormulario()"
+            class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+           viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 4v16m8-8H4" />
+      </svg>
+      Crear Horario
+    </button>
+  </div>
+
+  <!-- Lista de profesores -->
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold text-gray-700 mb-4">👨‍🏫 Profesores</h2>
+    <div *ngFor="let profesor of horariosAgrupados" class="bg-gray-100 p-4 mb-3 rounded-lg shadow flex justify-between items-center">
+      <div>
+        <p class="text-lg font-bold">
+          {{ profesor.nombre }}
+          <span *ngIf="profesor.especialidades?.length > 0" class="text-sm font-normal text-gray-600">
+        — {{ profesor.especialidades.join(', ') }}
+      </span>
+        </p>
+        <p class="text-sm text-gray-600">{{ profesor.horarios.length }} horarios asignados</p>
+      </div>
+      <div class="flex gap-2">
+        <button (click)="verCalendario(profesor)" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-1 rounded">
+          Ver Horario
+        </button>
+        <button (click)="editarHorarios(profesor)" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-1 rounded">
+          Editar Horarios
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Modal de Calendario por Profesor -->
+<div *ngIf="mostrarCalendario" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+  <div class="bg-white text-black w-full max-w-6xl rounded-lg p-6 shadow-xl relative">
+    <button (click)="cerrarCalendario()" class="absolute top-4 right-4 text-gray-500 hover:text-black text-xl">
+      &times;
+    </button>
+    <h2 class="text-2xl font-bold mb-4 text-purple-600 text-center">
+      🗓️ Horario de {{ profesorSeleccionado?.nombre }}
+    </h2>
+    <div class="max-h-[80vh] overflow-auto">
+      <full-calendar [options]="calendarOptions" class="bg-white rounded-lg shadow-md"></full-calendar>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de creación de horario -->
+<div *ngIf="mostrarFormulario" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white text-black w-full max-w-2xl rounded-xl shadow-xl p-8 border border-purple-600">
+    <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">➕ Crear Horario</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <!-- Día -->
+      <div>
+        <label class="block font-bold mb-1">📆 Día</label>
+        <select [(ngModel)]="nuevoHorario.dia" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+          <option [ngValue]="null" disabled>Seleccione un día</option>
+          <option [ngValue]="'LUNES'">Lunes</option>
+          <option [ngValue]="'MARTES'">Martes</option>
+          <option [ngValue]="'MIERCOLES'">Miércoles</option>
+          <option [ngValue]="'JUEVES'">Jueves</option>
+          <option [ngValue]="'VIERNES'">Viernes</option>
+        </select>
+      </div>
+
+      <!-- Bloque -->
+      <div>
+        <label class="block font-bold mb-1">🕘 Bloque Horario</label>
+        <select [(ngModel)]="nuevoHorario.bloque_id" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+          <option [ngValue]="null" disabled>Seleccione un bloque</option>
+          <option *ngFor="let b of bloques" [ngValue]="b.id">
+            {{ b.nombre }} ({{ b.hora_inicio }} - {{ b.hora_fin }})
+          </option>
+        </select>
+      </div>
+
+      <!-- Curso -->
+      <div>
+        <label class="block font-bold mb-1">🏫 Curso</label>
+        <select [(ngModel)]="nuevoHorario.curso_id" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+          <option [ngValue]="null" disabled>Seleccione un curso</option>
+          <option *ngFor="let c of cursos" [ngValue]="c.id">{{ c.nombre }}</option>
+        </select>
+      </div>
+
+      <!-- Materia -->
+      <div>
+        <label class="block font-bold mb-1">📘 Materia</label>
+        <select [(ngModel)]="nuevoHorario.materia_id" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+          <option [ngValue]="null" disabled>Seleccione una materia</option>
+          <option *ngFor="let m of materias" [ngValue]="m.id">{{ m.nombre }}</option>
+        </select>
+      </div>
+
+      <!-- Profesor -->
+      <div>
+        <label class="block font-bold mb-1">👨‍🏫 Profesor</label>
+        <select [(ngModel)]="nuevoHorario.profesor_id" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+          <option [ngValue]="null" disabled>Seleccione un profesor</option>
+          <option *ngFor="let p of profesores" [ngValue]="p.id">{{ p.first_name }} {{ p.last_name }}</option>
+        </select>
+      </div>
+
+      <!-- Periodo -->
+      <div>
+        <label class="block font-bold mb-1">📆 Periodo</label>
+        <select [(ngModel)]="nuevoHorario.periodo_id" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+          <option [ngValue]="null" disabled>Seleccione un periodo</option>
+          <option *ngFor="let per of periodos" [ngValue]="per.id">{{ per.nombre }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Botones -->
+    <div class="mt-6 flex justify-between">
+      <button (click)="crearHorario()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+        ✅ Guardar
+      </button>
+      <button (click)="cerrarFormulario()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+        ❌ Cancelar
+      </button>
+    </div>
+  </div>
+
+
+
+</div>
+
+<!-- Modal de edición de horarios -->
+<div *ngIf="mostrarEdicion" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white text-black w-full max-w-5xl rounded-xl shadow-xl p-8 border border-yellow-500 max-h-[90vh] overflow-y-auto">
+    <h2 class="text-2xl font-bold mb-6 text-center text-yellow-600">
+      ✏️ Editar Horarios de {{ profesorSeleccionado?.nombre }}
+    </h2>
+
+    <div *ngFor="let h of horariosEditar" class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6 border-b pb-4">
+      <!-- Día -->
+      <div>
+        <label class="block font-bold mb-1">Día</label>
+        <select [(ngModel)]="h.dia" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+          <option value="LUNES">Lunes</option>
+          <option value="MARTES">Martes</option>
+          <option value="MIERCOLES">Miércoles</option>
+          <option value="JUEVES">Jueves</option>
+          <option value="VIERNES">Viernes</option>
+        </select>
+      </div>
+
+      <!-- Materia -->
+      <div>
+        <label class="block font-bold mb-1">Materia</label>
+        <select [(ngModel)]="h.materia_id" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+          <option *ngFor="let m of materias" [ngValue]="m.id">{{ m.nombre }}</option>
+        </select>
+      </div>
+
+      <!-- Bloque -->
+      <div>
+        <label class="block font-bold mb-1">Bloque</label>
+        <select [(ngModel)]="h.bloque_id" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+          <option *ngFor="let b of bloques" [ngValue]="b.id">
+            {{ b.nombre }} ({{ b.hora_inicio }} - {{ b.hora_fin }})
+          </option>
+        </select>
+      </div>
+
+      <!-- Periodo -->
+      <div>
+        <label class="block font-bold mb-1">Periodo</label>
+        <select [(ngModel)]="h.periodo_id" class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+          <option *ngFor="let per of periodos" [ngValue]="per.id">{{ per.nombre }}</option>
+        </select>
+      </div>
+
+      <!-- Botones Eliminar y Guardar -->
+      <div class="col-span-full flex justify-between mt-4">
+        <button (click)="eliminarHorario(h.id)"
+                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow">
+          🗑️ Eliminar
+        </button>
+        <button (click)="actualizarHorario(h)"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg shadow">
+          💾 Guardar Cambios
+        </button>
+      </div>
+    </div>
+
+    <!-- Botón cerrar -->
+    <div class="flex justify-end mt-4">
+      <button (click)="cerrarEdicion()"
+              class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg shadow">
+        ❌ Cerrar
+      </button>
+    </div>
+  </div>
+</div>

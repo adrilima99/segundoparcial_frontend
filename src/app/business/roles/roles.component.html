@@ -1,0 +1,122 @@
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container bg-stone-100 mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-4">Gestionar Roles</h1>
+
+  <!-- Barra superior -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <!-- Izquierda: botón -->
+    <div class="flex items-center gap-3">
+      <button (click)="addRol()"
+              class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="white" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Añadir Rol
+      </button>
+    </div>
+
+    <!-- Derecha: buscador -->
+    <div class="w-full sm:w-auto">
+      <input [(ngModel)]="searchTerm" (ngModelChange)="filterRoles()" type="text"
+             placeholder="Buscar rol..."
+             class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500" />
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead class="bg-gray-800 text-white">
+      <tr>
+        <th class="p-3 text-left">Nombre</th>
+        <th class="p-3 text-left">Permisos</th>
+        <th class="p-3 text-left">Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let rol of paginatedRoles()" class="hover:bg-gray-50 border-b">
+        <td class="p-3">{{ rol.name }}</td>
+
+        <!-- Permisos resumidos -->
+        <td class="p-3 text-gray-700">
+          <ng-container *ngIf="rol.permissions && rol.permissions.length > 0; else noPermisos">
+            <span *ngFor="let p of rol.permissions.slice(0, 3); let i = index">
+              {{ getNombrePermiso(p) }}<span *ngIf="i < rol.permissions.slice(0, 3).length - 1">, </span>
+            </span>
+            <span *ngIf="rol.permissions.length > 3" class="text-gray-400">y {{ rol.permissions.length - 3 }} más...</span>
+          </ng-container>
+          <ng-template #noPermisos>
+            <span class="italic text-gray-400">Sin permisos asignados</span>
+          </ng-template>
+        </td>
+
+        <td class="p-3 flex gap-4">
+          <button (click)="editRol(rol)" class="bg-blue-600 text-white px-3 py-1 rounded" title="Editar">
+            ✏️
+          </button>
+
+
+        </td>
+
+
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- Paginación -->
+  <div class="mt-6 flex justify-end items-center gap-2">
+    <button (click)="prevPage()" [disabled]="currentPage === 1"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Anterior</button>
+    <span class="text-sm font-medium text-gray-700">Página {{ currentPage }} de {{ totalPages() }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages()"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Siguiente</button>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white w-full max-w-lg p-6 rounded-xl shadow-xl relative overflow-y-auto max-h-[90vh]">
+      <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">
+        {{ selectedRol.id ? '✏️ Editar Rol' : '➕ Añadir Rol' }}
+      </h2>
+
+      <div class="space-y-4">
+        <label class="block font-bold mb-1">🎭 Nombre del Rol</label>
+        <input [(ngModel)]="selectedRol.name" type="text"
+               class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black" />
+
+        <label class="block font-bold mb-1">🔐 Permisos Asociados</label>
+        <div class="max-h-40 overflow-y-auto border rounded-md bg-gray-50 p-2">
+          <div *ngFor="let permiso of permisosDisponibles" class="flex items-center space-x-2 mb-1">
+            <input type="checkbox"
+                   [checked]="permisoSeleccionado(permiso.id)"
+                   (change)="togglePermiso(permiso.id)"
+                   class="accent-purple-600" />
+            <label class="text-sm">{{ permiso.name }}</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="mt-6 flex justify-between">
+        <button (click)="saveRol()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+          ✅ Guardar
+        </button>
+        <button (click)="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+          ❌ Cancelar
+        </button>
+      </div>
+
+      <!-- Spinner -->
+      <div *ngIf="isSaving" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-xl">
+        <div class="w-12 h-12 border-4 border-white border-t-purple-500 rounded-full animate-spin"></div>
+      </div>
+    </div>
+  </div>
+</div>

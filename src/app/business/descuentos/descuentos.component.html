@@ -1,0 +1,147 @@
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-4">Gestionar Descuentos</h1>
+
+  <!-- Filtros y botón -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Botón -->
+      <button (click)="showAddModal()"
+              class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="white" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        Registrar Descuento
+      </button>
+
+      <!-- Filtro por campaña -->
+      <select [(ngModel)]="campanaSeleccionada" (change)="filterDescuentos()"
+              class="px-3 py-2 border rounded-lg bg-gray-100 text-black w-auto max-w-fit">
+        <option [ngValue]="null">Todas las campañas</option>
+        <option *ngFor="let c of campanas" [ngValue]="c">{{ c.nombre }}</option>
+      </select>
+    </div>
+
+    <!-- Buscador -->
+    <div class="w-full sm:w-auto">
+      <input [(ngModel)]="searchTerm" (ngModelChange)="filterDescuentos()" type="text"
+             placeholder="Buscar producto..."
+             class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500" />
+    </div>
+  </div>
+
+  <!-- Tabla -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead class="bg-gray-800 text-white">
+      <tr>
+        <th class="p-3">Producto</th>
+        <th class="p-3">Campaña</th>
+        <th class="p-3">Categoría</th>
+        <th class="p-3">Subcategoría</th>
+        <th class="p-3">Porcentaje</th>
+        <th class="p-3">Activo</th>
+        <th class="p-3 text-center">Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngIf="paginatedDescuentos().length === 0">
+        <td colspan="7" class="text-center text-gray-500 py-4">No hay descuentos disponibles.</td>
+      </tr>
+      <tr *ngFor="let d of paginatedDescuentos()" class="hover:bg-gray-50 border-b">
+        <td class="p-3">{{ getNombreProducto(d.producto) }}</td>
+        <td class="p-3">{{ getNombreCampana(d.campana) }}</td>
+        <td class="p-3">{{ getNombreCategoriaDesdeProducto(d.producto) }}</td>
+        <td class="p-3">{{ getNombreSubcategoriaDesdeProducto(d.producto) }}</td>
+        <td class="p-3">{{ d.porcentaje | number: '1.2-2' }}%</td>
+        <td class="p-3">
+            <span [class]="'px-2 py-1 rounded-full text-xs font-bold ' + (d.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')">
+              {{ d.activo ? 'Sí' : 'No' }}
+            </span>
+        </td>
+        <td class="p-3 text-center flex gap-2 justify-center">
+          <button (click)="showEditModal(d)" class="text-blue-600 hover:text-blue-800" title="Editar">
+            ✏️ <span class="sr-only sm:not-sr-only">Editar</span>
+          </button>
+          <button (click)="deleteDescuento(d.id)" class="text-red-600 hover:text-red-800" title="Eliminar">
+            🗑️ <span class="sr-only sm:not-sr-only">Eliminar</span>
+          </button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="mt-6 flex justify-end items-center gap-2">
+    <button (click)="prevPage()" [disabled]="currentPage === 1"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Anterior</button>
+    <span class="text-sm font-medium text-gray-700">Página {{ currentPage }} de {{ totalPages() }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages()"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Siguiente</button>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white w-full max-w-lg p-6 rounded-xl shadow-xl relative overflow-y-auto max-h-[90vh]">
+      <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">
+        {{ isEditMode ? '✏️ Editar Descuento' : '➕ Registrar Descuento' }}
+      </h2>
+
+      <div class="space-y-4">
+        <!-- Campaña -->
+        <label class="block font-bold mb-1">📢 Campaña</label>
+        <select [(ngModel)]="selectedDescuento.campana" class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black">
+          <option [ngValue]="null" disabled>Seleccione una campaña</option>
+          <option *ngFor="let c of campanas" [ngValue]="c">{{ c.nombre }}</option>
+        </select>
+
+        <!-- Producto -->
+        <label class="block font-bold mb-1">📦 Producto</label>
+        <input [(ngModel)]="productoBuscado" (input)="mostrarListaProductos = true"
+               type="text" placeholder="Buscar producto..."
+               class="w-full px-3 py-2 border rounded-lg bg-gray-100 text-black" />
+        <ul *ngIf="productoBuscado && getProductosFiltradosPorNombre().length > 0 && mostrarListaProductos"
+            class="bg-white border border-gray-300 rounded-md shadow max-h-40 overflow-y-auto mt-1 text-black z-10 relative">
+          <li *ngFor="let p of getProductosFiltradosPorNombre()" (click)="selectProducto(p.id)"
+              class="px-3 py-2 hover:bg-purple-100 cursor-pointer">
+            {{ p.nombre }}
+          </li>
+        </ul>
+
+        <!-- Porcentaje -->
+        <label class="block font-bold mb-1">📉 Porcentaje de Descuento</label>
+        <input [(ngModel)]="selectedDescuento.porcentaje" type="number"
+               class="w-full px-3 py-2 border rounded-lg bg-gray-100" />
+
+        <!-- Activo -->
+        <label class="block font-bold mb-1">🟢 Activo</label>
+        <select [(ngModel)]="selectedDescuento.activo"
+                class="w-full px-3 py-2 border rounded-lg bg-gray-100">
+          <option [ngValue]="true">Sí</option>
+          <option [ngValue]="false">No</option>
+        </select>
+      </div>
+
+      <!-- Botones -->
+      <div class="mt-6 flex justify-between">
+        <button (click)="saveDescuento()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+          ✅ Guardar
+        </button>
+        <button (click)="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+          ❌ Cancelar
+        </button>
+      </div>
+
+      <!-- Spinner -->
+      <div *ngIf="isSaving" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-xl">
+        <div class="w-12 h-12 border-4 border-white border-t-purple-500 rounded-full animate-spin"></div>
+      </div>
+    </div>
+  </div>
+</div>

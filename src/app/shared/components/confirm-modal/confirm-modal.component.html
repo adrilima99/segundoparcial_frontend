@@ -1,0 +1,9 @@
+<div class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+  <div class="relative bg-white rounded-lg shadow-md p-6 w-96">
+    <h3 class="text-xl mb-4">{{ message }}</h3>
+    <div class="flex justify-end space-x-4">
+      <button (click)="onCancel()" class="bg-gray-500 text-white px-4 py-2 rounded-md">Cancelar</button>
+      <button (click)="onConfirm()" class="bg-red-500 text-white px-4 py-2 rounded-md">Confirmar</button>
+    </div>
+  </div>
+</div>

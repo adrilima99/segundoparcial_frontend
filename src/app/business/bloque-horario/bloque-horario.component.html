@@ -1,0 +1,116 @@
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container bg-stone-100 mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-4">Gestionar Bloques Horarios</h1>
+
+  <!-- Controles superiores -->
+  <div class="flex justify-between items-center mb-6 flex-wrap gap-4">
+    <button (click)="addBloque()"
+            class="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-md transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      Añadir Bloque
+    </button>
+
+    <input [(ngModel)]="searchTerm"
+           (ngModelChange)="filterBloques()"
+           type="text"
+           placeholder="Buscar por nombre..."
+           class="w-full sm:w-72 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500" />
+  </div>
+
+  <!-- Tabla -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead class="bg-gray-800 text-white">
+      <tr>
+        <th class="p-3 text-left">Nombre</th>
+        <th class="p-3 text-left">Hora Inicio</th>
+        <th class="p-3 text-left">Hora Fin</th>
+        <th class="p-3 text-center">Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let b of paginatedBloques()" class="hover:bg-gray-50 border-b">
+        <td class="p-3">{{ b.nombre }}</td>
+        <td class="p-3">{{ b.hora_inicio }}</td>
+        <td class="p-3">{{ b.hora_fin }}</td>
+        <td class="p-3 text-center space-x-4">
+          <button (click)="editBloque(b)" class="bg-blue-600 text-white px-3 py-1 rounded">✏️</button>
+          <button (click)="deleteBloque(b.id)" class="bg-red-600 text-white px-3 py-1 rounded">🗑️</button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="mt-6 flex justify-end items-center gap-2" *ngIf="totalPages() > 1">
+    <button (click)="prevPage()" [disabled]="currentPage === 1"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Anterior</button>
+    <span class="text-sm font-medium text-gray-700">Página {{ currentPage }} de {{ totalPages() }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages()"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Siguiente</button>
+  </div>
+
+  <!-- Modal -->
+  <div *ngIf="showModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white text-black w-full max-w-xl rounded-xl shadow-xl p-8 border border-purple-600">
+      <h2 class="text-2xl font-bold mb-6 text-center text-purple-600">
+        {{ isEditMode ? '✏️ Editar Bloque' : '➕ Añadir Bloque' }}
+      </h2>
+
+      <div class="space-y-4">
+
+        <!-- Selector sugerido -->
+        <div>
+          <label class="block font-bold mb-1 text-purple-700">⏱️ Elegir bloque sugerido</label>
+          <select [(ngModel)]="bloqueSeleccionadoSugerido" (change)="aplicarSugerido()"
+                  class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black">
+            <option [ngValue]="null" disabled selected>Seleccione un bloque sugerido...</option>
+            <option *ngFor="let sugerido of bloquesSugeridos" [ngValue]="sugerido">
+              {{ sugerido.nombre }} ({{ sugerido.hora_inicio }} - {{ sugerido.hora_fin }})
+            </option>
+          </select>
+
+        </div>
+
+        <!-- Nombre -->
+        <div>
+          <label class="block font-bold mb-1">🔤 Nombre del Bloque</label>
+          <input [(ngModel)]="selectedBloque.nombre"
+                 class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black"
+                 placeholder="Ej: Bloque 1, Receso, Almuerzo..." />
+        </div>
+
+        <!-- Hora Inicio -->
+        <div>
+          <label class="block font-bold mb-1">⏰ Hora de Inicio</label>
+          <input [(ngModel)]="selectedBloque.hora_inicio" type="time"
+                 class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black" />
+        </div>
+
+        <!-- Hora Fin -->
+        <div>
+          <label class="block font-bold mb-1">⏱️ Hora de Fin</label>
+          <input [(ngModel)]="selectedBloque.hora_fin" type="time"
+                 class="w-full px-4 py-2 border rounded-lg bg-gray-100 text-black" />
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-between">
+        <button (click)="saveBloque()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg shadow">
+          {{ isEditMode ? '💾 Actualizar' : '✅ Guardar' }}
+        </button>
+        <button (click)="closeModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg shadow">
+          ❌ Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,80 @@
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container bg-stone-100 mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-4">Bitácora del Sistema</h1>
+
+  <!-- Filtros por fecha y username -->
+  <div class="flex flex-wrap gap-4 items-center mb-6">
+    <input [(ngModel)]="username" type="text" placeholder="Buscar por username"
+           class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500" />
+
+    <input [(ngModel)]="fechaInicio" type="date"
+           class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500" />
+
+    <input [(ngModel)]="fechaFin" type="date"
+           class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500" />
+
+    <button (click)="aplicarFiltros()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">
+      🔍 Buscar
+    </button>
+
+    <button (click)="limpiarFiltros()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+      ❌ Limpiar
+    </button>
+
+    <!-- Exportar PDF -->
+    <button
+      class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded"
+      (click)="descargarPDF()"
+    >
+      📄 Descargar PDF
+    </button>
+
+    <!-- Exportar Excel -->
+    <button
+      class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+      (click)="descargarExcel()"
+    >
+      📊 Descargar Excel
+    </button>
+  </div>
+
+  <!-- Tabla -->
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead class="bg-gray-800 text-white">
+      <tr>
+        <th class="p-3">Usuario</th>
+        <th class="p-3">Acción</th>
+        <th class="p-3">Módulo</th>
+        <th class="p-3">Fecha</th>
+        <th class="p-3">IP</th>
+        <th class="p-3">Dispositivo</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let log of paginatedBitacoras()" class="hover:bg-gray-50 border-b">
+        <td class="p-3">{{ log.usuario_nombre }} ({{ log.username }})</td>
+        <td class="p-3">{{ log.accion }}</td>
+        <td class="p-3">{{ log.modulo || '-' }}</td>
+        <td class="p-3">{{ log.fecha | date: 'short' }}</td>
+        <td class="p-3">{{ log.ip_origen || '-' }}</td>
+        <td class="p-3">{{ log.dispositivo || '-' }}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="mt-6 flex justify-end items-center gap-2" *ngIf="totalPages() > 1">
+    <button (click)="prevPage()" [disabled]="currentPage === 1"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Anterior</button>
+    <span class="text-sm font-medium text-gray-700">Página {{ currentPage }} de {{ totalPages() }}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === totalPages()"
+            class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-50">Siguiente</button>
+  </div>
+</div>

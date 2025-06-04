@@ -1,0 +1,50 @@
+<!-- Spinner -->
+<div *ngIf="isLoading" class="spinner-container">
+  <div class="spinner"></div>
+</div>
+
+<!-- Contenido -->
+<div *ngIf="!isLoading" class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-purple-900 mb-6">🧾 Facturas Emitidas</h1>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow text-sm">
+      <thead>
+      <tr class="bg-gray-800 text-white text-left">
+        <th class="p-3">#</th>
+        <th class="p-3">Número de Factura</th>
+        <th class="p-3">Fecha de Emisión</th>
+        <th class="p-3">Enviado</th>
+        <th class="p-3">Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let factura of facturas; let i = index" class="hover:bg-gray-50 border-b">
+        <td class="p-3">{{ i + 1 }}</td>
+        <td class="p-3">{{ factura.numero_factura }}</td>
+        <td class="p-3">{{ factura.fecha_emision | date: 'short' }}</td>
+        <td class="p-3">
+            <span
+              [ngClass]="{
+                'bg-green-100 text-green-800': factura.enviado_por_correo,
+                'bg-red-100 text-red-800': !factura.enviado_por_correo
+              }"
+              class="px-2 py-1 rounded text-xs"
+            >
+              {{ factura.enviado_por_correo ? 'Sí' : 'No' }}
+            </span>
+        </td>
+        <td class="p-3">
+          <a
+            [href]="factura.archivo_pdf_url"
+            target="_blank"
+            class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded shadow transition"
+          >
+            Ver PDF
+          </a>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
