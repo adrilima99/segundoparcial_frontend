@@ -1,28 +1,23 @@
-<link rel="stylesheet" href="header.component.css">
-<div class="flex flex-col-reverse md:flex-row md:items-center md:justify-between gap-6 p-4 bg-gray-900 text-white shadow-md rounded-lg">
+<link rel="stylesheet" href="header.component.css" />
+<div class="flex flex-col-reverse md:flex-row md:items-center md:justify-between gap-6 p-4 bg-[#f0d9ff] text-[#4c1d95] shadow-md rounded-3xl w-full max-w-7xl mx-auto font-poppins">
   <!-- Breadcrumb + Título + Imagen -->
   <div class="flex flex-col md:flex-row md:items-center md:gap-4 capitalize">
     <!-- Imagen logo -->
-    <img src="https://res.cloudinary.com/dkpuiyovk/image/upload/v1747407908/pngwing.com_45_ejyfpl.png"
-         alt="SmartCar Logo"
-         class="w-12 h-12 object-contain" />
 
     <div class="flex flex-col">
       <nav aria-label="breadcrumb">
-        <ol class="flex items-center text-sm text-gray-300 space-x-2">
+        <ol class="flex items-center text-sm text-[#a78bfa] space-x-2">
           <li>
-            <a href="/dashboard" class="hover:text-purple-400 transition flex items-center gap-1">
-              <i class="fas fa-home"></i> Dashboard
-            </a>
-            <span class="mx-2">/</span>
+
+
           </li>
-          <li class="text-purple-400 font-semibold flex items-center gap-1">
+          <li class="text-[#7c3aed] font-semibold flex items-center gap-1 text-2xl">
             <i class="fas fa-chart-line"></i> Home
           </li>
         </ol>
       </nav>
-      <h6 class="text-base md:text-lg font-semibold text-white flex items-center gap-2 mt-1">
-        <i class="fas fa-car text-purple-400"></i>
+      <h6 class="text-base md:text-lg font-semibold flex items-center gap-2 mt-1 text-[#4c1d95]">
+        <i class="fas fa-car text-[#7c3aed]"></i>
         Aula Inteligente
       </h6>
     </div>
@@ -35,10 +30,10 @@
       <input
         type="text"
         placeholder="Buscar..."
-        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        class="w-full px-4 py-2 bg-white border border-[#d8b4fe] rounded-xl text-[#4c1d95] placeholder-[#a78bfa] focus:outline-none focus:ring-2 focus:ring-[#c084fc] transition-all"
       />
       <svg
-        class="absolute right-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none"
+        class="absolute right-3 top-2.5 h-5 w-5 text-[#a78bfa] pointer-events-none"
         fill="none"
         stroke="currentColor"
         stroke-width="2"
@@ -51,14 +46,17 @@
     <!-- Usuario + Dropdown -->
     <ng-container *ngIf="isAuthenticated; else loggedOut">
       <div class="relative user-dropdown">
-        <button (click)="toggleDropdown()" class="flex items-center gap-2 text-white hover:text-purple-400 focus:outline-none">
-          <span class="text-sm font-medium">{{ userName }}</span>
+        <button
+          (click)="toggleDropdown()"
+          class="flex items-center gap-2 text-[#4c1d95] hover:text-[#7c3aed] focus:outline-none font-medium"
+        >
+          <span class="text-sm">{{ userName }}</span>
 
           <!-- Avatar -->
           <img
             [src]="fotoPerfil || 'https://res.cloudinary.com/dkpuiyovk/image/upload/v1744155434/pngwing.com_37_gxzu8b.png'"
             alt="Avatar"
-            class="w-8 h-8 rounded-full border border-purple-500"
+            class="w-8 h-8 rounded-full border border-[#a78bfa]"
           />
 
           <i class="fas fa-chevron-down text-xs ml-1"></i>
@@ -67,13 +65,19 @@
         <!-- Dropdown -->
         <div
           *ngIf="showDropdown"
-          class="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded shadow-lg z-50 animate-fade"
+          class="absolute right-0 mt-2 w-48 bg-white border border-[#d8b4fe] rounded-xl shadow-lg z-50 animate-fade"
         >
-          <a href="/perfil" class="flex items-center px-4 py-2 text-sm text-white hover:bg-purple-600 transition">
-            <i class="fas fa-user mr-2 text-purple-400"></i> Ver Perfil
+          <a
+            href="/perfil"
+            class="flex items-center px-4 py-2 text-sm text-[#4c1d95] hover:bg-[#c084fc] hover:text-white rounded transition"
+          >
+            <i class="fas fa-user mr-2 text-[#7c3aed]"></i> Ver Perfil
           </a>
-          <button (click)="logout()" class="w-full text-left px-4 py-2 text-sm text-white hover:bg-purple-600 transition">
-            <i class="fas fa-sign-out-alt mr-2 text-red-400"></i> Cerrar Sesión
+          <button
+            (click)="logout()"
+            class="w-full text-left px-4 py-2 text-sm text-[#7c3aed] hover:bg-[#9333ea] hover:text-white rounded transition"
+          >
+            <i class="fas fa-sign-out-alt mr-2 text-red-500"></i> Cerrar Sesión
           </button>
         </div>
       </div>
@@ -83,7 +87,7 @@
     <ng-template #loggedOut>
       <a href="/login">
         <button
-          class="bg-transparent border border-purple-500 hover:bg-purple-600 hover:text-white text-purple-400 text-xs px-4 py-2 rounded-lg flex items-center gap-2 transition"
+          class="bg-transparent border border-[#a78bfa] hover:bg-[#c084fc] hover:text-white text-[#7c3aed] text-xs px-4 py-2 rounded-xl flex items-center gap-2 transition"
         >
           <i class="fas fa-sign-in-alt"></i> Iniciar sesión
         </button>
@@ -91,3 +95,27 @@
     </ng-template>
   </div>
 </div>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
+
+  .font-poppins {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  /* Animación fade (opcional) */
+  .animate-fade {
+    animation: fadeIn 0.25s ease-in-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
